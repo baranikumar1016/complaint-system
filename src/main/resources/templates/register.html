@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register</title>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #3b82f6 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+}
+.register-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+}
+.user-icon {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.user-icon i {
+    font-size: 64px;
+    color: #7c3aed;
+}
+.register-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 30px;
+}
+.form-label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+.form-control {
+    height: 50px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 16px;
+    padding: 12px 16px;
+}
+.form-control:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+.btn-register {
+    width: 100%;
+    height: 50px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+}
+.message-area {
+    margin-bottom: 20px;
+}
+.alert {
+    border-radius: 10px;
+}
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #6b7280;
+}
+.login-link a {
+    color: #7c3aed;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* 👁 PASSWORD TOGGLE */
+.password-wrapper {
+    position: relative;
+}
+.password-wrapper i {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6b7280;
+}
+</style>
+</head>
+
+<body>
+
+<div class="register-card">
+
+    <div class="user-icon">
+        <i class="bi bi-person-circle"></i>
+    </div>
+
+    <h1 class="register-title">Create Account</h1>
+
+    <div id="messageArea" class="message-area" style="display:none;"></div>
+
+    <form id="registerForm">
+
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" placeholder="Enter your name" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+        </div>
+
+        <!-- Password with eye -->
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <div class="password-wrapper">
+                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                <i id="togglePassword" class="bi bi-eye-slash"></i>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-register" id="registerBtn">Register</button>
+    </form>
+
+    <p class="login-link">
+        Already have an account? <a href="login.html">Login</a>
+    </p>
+</div>
+
+<script>
+const registerForm = document.getElementById('registerForm');
+const registerBtn = document.getElementById('registerBtn');
+const messageArea = document.getElementById('messageArea');
+const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const togglePassword = document.getElementById('togglePassword');
+
+/* 👁 SHOW / HIDE PASSWORD */
+togglePassword.addEventListener('click', () => {
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+    togglePassword.classList.toggle('bi-eye');
+    togglePassword.classList.toggle('bi-eye-slash');
+});
+
+function showMessage(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    messageArea.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+    messageArea.style.display = 'block';
+}
+
+function hideMessage() {
+    messageArea.style.display = 'none';
+    messageArea.innerHTML = '';
+}
+
+function setFormDisabled(disabled) {
+    nameInput.disabled = disabled;
+    emailInput.disabled = disabled;
+    passwordInput.disabled = disabled;
+    registerBtn.disabled = disabled;
+
+    registerBtn.innerHTML = disabled
+        ? `<span class="spinner-border spinner-border-sm"></span> Creating account...`
+        : 'Register';
+}
+
+registerForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideMessage();
+
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!name || !email || !password) {
+        showMessage('Please fill in all fields', 'error');
+        return;
+    }
+
+    setFormDisabled(true);
+
+    try {
+        const response = await fetch('http://localhost:8080/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage('Registration successful! Redirecting to login...', 'success');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+        } else {
+            showMessage(data.message || 'Registration failed', 'error');
+            setFormDisabled(false);
+        }
+    } catch {
+        showMessage('Network error. Please try again.', 'error');
+        setFormDisabled(false);
+    }
+});
+</script>
+
+</body>
+</html>
